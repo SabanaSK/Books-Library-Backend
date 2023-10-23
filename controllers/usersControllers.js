@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Token from "../models/Token.js";
 import InviteToken from "../models/InviteToken.js";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
 
@@ -10,7 +10,6 @@ import {
   generateAccessToken,
   generateAndStoreTokens,
   verifyRefreshToken,
-  
 } from "../middleware/jwt.js";
 
 dotenv.config();
@@ -20,11 +19,11 @@ const inviteUser = async (req, res, next) => {
     const { email } = req.body;
 
     const inviteToken = new InviteToken(
-      null, 
+      null,
       req.user.id,
       uuidv4(),
       email,
-      'active',
+      "active",
       new Date(),
       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Expires in 7 days
     );
@@ -33,14 +32,14 @@ const inviteUser = async (req, res, next) => {
     const inviteURL = `http://localhost:${process.env.PORT}/register?token=${inviteToken.inviteToken}`;
 
     req.emailDetails = {
-      to: email, 
-      subject: 'You are invited to our platform!', 
-      body: `Click on the link to register: ${inviteURL}`
+      to: email,
+      subject: "You are invited to our platform!",
+      body: `Click on the link to register: ${inviteURL}, Here is your ${inviteToken} `,
     };
-    
+
     sendEmail(req, res, next);
-  
-    res.status(200).json({ message: 'Invitation sent successfully.' });
+
+    res.status(200).json({ message: "Invitation sent successfully." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
@@ -48,6 +47,38 @@ const inviteUser = async (req, res, next) => {
   }
 };
 
+const registerWithInvite = async (req, res, next) => {
+  const { username, email, password, inviteToken } = req.body;
+
+  try {
+    const storedToken = await InviteToken.findByToken(inviteToken);
+    if (!storedToken || storedToken.email !== email) {
+      return res.status(400).json({ message: "Invalid invite token." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = new User(
+      null,
+      username,
+      email,
+      hashedPassword,
+      null,
+      null,
+      null,
+      "active",
+      "user" //Change later so Admin can give role
+    );
+    await user.save();
+
+    await InviteToken.deactivate(inviteToken);
+
+    res.status(200).json({ message: "Registration successful." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+    next(error);
+  }
+};
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
@@ -126,6 +157,7 @@ const deleteById = async (req, res, next) => {
 
 export default {
   inviteUser,
+  registerWithInvite,
   login,
   autoLogin,
   getAllUsers,

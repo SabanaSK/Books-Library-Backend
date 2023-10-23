@@ -4,6 +4,7 @@ import verify from "../middleware/verify.js";
 const router = express.Router();
 
 router.post("/invite", verify.verifyAdmin, usersControllers.inviteUser);
+router.post("/register", usersControllers.registerWithInvite);
 router.post("/login", usersControllers.login);
 
 //The autoLogin function is called when the Access Token expires only and validate Refresh token

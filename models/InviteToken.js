@@ -43,9 +43,27 @@ class InviteToken {
   }
 
   static async findAll() {
-    const sql = `SELECT * FROM tokens`;
+    const sql = `SELECT * FROM inviteTokens`;
     const [allTokens] = await db.execute(sql);
     return allTokens;
+  }
+
+  static async findByToken(inviteToken) {
+    const sql = "SELECT * FROM inviteTokens WHERE inviteToken = ?";
+    const [tokens] = await db.execute(sql, [inviteToken]);
+    if (tokens.length === 0) {
+      return null;
+    }
+    return tokens[0];
+  }
+
+  static async deactivate(token) {
+    const sql = `
+      UPDATE inviteTokens 
+      SET status = 'inactive'
+      WHERE inviteToken = ?`;
+
+    await db.execute(sql, [token]);
   }
 }
 
