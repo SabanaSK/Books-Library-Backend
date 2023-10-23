@@ -2,6 +2,7 @@ import pool from "./config/db.js";
 import User from "./models/User.js";
 import Book from "./models/Book.js";
 import Token from "./models/Token.js";
+import InviteToken from "./models/InviteToken.js";
 import bcrypt from "bcryptjs";
 import * as dotenv from "dotenv";
 
@@ -36,6 +37,9 @@ const setupDatabase = async () => {
 
   const token = new Token();
   await token.ensureTokenTableExist();
+
+  const inviteToken = new InviteToken();
+  await inviteToken.ensureInviteTokenTableExist();
 
   console.log("Database tables checked/created successfully!");
   pool.end();

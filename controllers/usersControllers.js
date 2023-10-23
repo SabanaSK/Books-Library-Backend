@@ -1,11 +1,53 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Token from "../models/Token.js";
+import InviteToken from "../models/InviteToken.js";
+import { v4 as uuidv4 } from 'uuid';
+import sendEmail from "../middleware/sendEmail.js";
+import * as dotenv from "dotenv";
+
 import {
   generateAccessToken,
   generateAndStoreTokens,
   verifyRefreshToken,
+  
 } from "../middleware/jwt.js";
+
+dotenv.config();
+
+const inviteUser = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const inviteToken = new InviteToken(
+      null, 
+      req.user.id,
+      uuidv4(),
+      email,
+      'active',
+      new Date(),
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Expires in 7 days
+    );
+
+    await inviteToken.save();
+    const inviteURL = `http://localhost:${process.env.PORT}/register?token=${inviteToken.inviteToken}`;
+
+    req.emailDetails = {
+      to: email, 
+      subject: 'You are invited to our platform!', 
+      body: `Click on the link to register: ${inviteURL}`
+    };
+    
+    sendEmail(req, res, next);
+  
+    res.status(200).json({ message: 'Invitation sent successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+    next(error);
+  }
+};
+
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
@@ -59,7 +101,6 @@ const autoLogin = async (req, res, next) => {
   }
 };
 
-
 const getAllUsers = async (req, res, next) => {
   try {
     const posts = await User.findAll();
@@ -84,8 +125,9 @@ const deleteById = async (req, res, next) => {
 };
 
 export default {
+  inviteUser,
   login,
   autoLogin,
   getAllUsers,
-  deleteById
+  deleteById,
 };
