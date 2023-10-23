@@ -1,13 +1,12 @@
 import db from "../config/db.js";
 
 class Token {
-  constructor(id, userId, token, issuedAt, expiresAt, revoked) {
+  constructor(id, userId, token, issuedAt, expiresAt) {
     this.id = id;
     this.userId = userId;
     this.token = token;
     this.issuedAt = issuedAt;
     this.expiresAt = expiresAt;
-    this.revoked = revoked;
     this.ensureTokenTableExist();
   }
 
@@ -18,8 +17,7 @@ class Token {
         userId INT NOT NULL,
         token VARCHAR(512) UNIQUE NOT NULL,  
         issuedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        expiresAt TIMESTAMP NOT NULL,
-        revoked BOOLEAN DEFAULT FALSE,       
+        expiresAt TIMESTAMP NOT NULL,      
         FOREIGN KEY (userId) REFERENCES users(id)
       );
     `;
@@ -28,12 +26,11 @@ class Token {
 
   async save() {
     const sql =
-      "INSERT INTO tokens(userId, token, expiresAt, revoked) VALUES(?, ?, ?, ?)";
+      "INSERT INTO tokens(userId, token, expiresAt) VALUES(?, ?, ?, ?)";
     const [newToken] = await db.execute(sql, [
       this.userId,
       this.token,
       this.expiresAt,
-      this.revoked,
     ]);
     this.id = newToken.insertId;
     return this;
