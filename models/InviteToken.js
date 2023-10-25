@@ -65,6 +65,10 @@ class InviteToken {
 
     await db.execute(sql, [token]);
   }
+  static async deleteById(id) {
+    const sql = `DELETE FROM inviteTokens WHERE Id = ?`;
+    await db.execute(sql, [id]);
+  }
 }
 
 export default InviteToken;

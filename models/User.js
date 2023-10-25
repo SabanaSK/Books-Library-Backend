@@ -30,7 +30,7 @@ class User {
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updatedAt TIMESTAMP NULL DEFAULT NULL,
     deletedAt TIMESTAMP NULL DEFAULT NULL,
@@ -44,11 +44,12 @@ class User {
   async save() {
     const sql = `
       INSERT INTO users(username, email, password, status, role) 
-      VALUES(?, ?, ?, 'active', ?)`;
+      VALUES(?, ?, ?, ?, ?)`;
     const [newUser] = await db.execute(sql, [
       this.username,
       this.email,
       this.password,
+      this.status,
       this.role,
     ]);
     this.id = newUser.insertId;
@@ -106,6 +107,10 @@ class User {
   static async deleteById(id) {
     const sql = `DELETE FROM users WHERE Id = ?`;
     await db.execute(sql, [id]);
+  }
+  static async update(user) {
+    const sql = "UPDATE users SET username = ?, password = ? WHERE email = ?";
+    await db.execute(sql, [user.username, user.password, user.email]);
   }
 }
 

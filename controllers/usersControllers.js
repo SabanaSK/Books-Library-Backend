@@ -16,7 +16,7 @@ dotenv.config();
 
 const inviteUser = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { username, email } = req.body;
 
     const inviteToken = new InviteToken(
       null,
@@ -29,6 +29,19 @@ const inviteUser = async (req, res, next) => {
     );
 
     await inviteToken.save();
+    const user = new User(
+      null,
+      username, // We will set the username later when they register
+      email,
+      null, // Password will be set later
+      null,
+      null,
+      null,
+      "invited", // set status to "invited"
+      "user"
+    );
+
+    await user.save();
     const inviteURL = `http://localhost:${process.env.PORT}/register?token=${inviteToken.inviteToken}`;
 
     req.emailDetails = {
@@ -47,36 +60,35 @@ const inviteUser = async (req, res, next) => {
   }
 };
 
-const registerWithInvite = async (req, res, next) => {
-  const { username, email, password, inviteToken } = req.body;
-
+const registerWithInvite = async (req, res) => {
   try {
+    const inviteToken = req.body.inviteToken;
     const storedToken = await InviteToken.findByToken(inviteToken);
-    if (!storedToken || storedToken.email !== email) {
+
+    if (!storedToken || new Date(storedToken.expiresAt) < new Date()) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired invite token." });
+    }
+    const existingUser = await User.findByEmail(storedToken.email);
+
+    if (existingUser) {
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      existingUser.password = hashedPassword;
+      existingUser.username = req.body.username;
+      await User.update(existingUser);
+
+      await InviteToken.deactivate(inviteToken);
+
+      return res
+        .status(200)
+        .json({ message: "Registration completed successfully." });
+    } else {
       return res.status(400).json({ message: "Invalid invite token." });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new User(
-      null,
-      username,
-      email,
-      hashedPassword,
-      null,
-      null,
-      null,
-      "active",
-      "user" //Change later so Admin can give role
-    );
-    await user.save();
-
-    await InviteToken.deactivate(inviteToken);
-
-    res.status(200).json({ message: "Registration successful." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
+    return res.status(500).json({ message: "Internal Server Error." });
   }
 };
 
