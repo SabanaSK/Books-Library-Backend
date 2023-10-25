@@ -6,11 +6,9 @@ const router = express.Router();
 router.post("/invite", verify.verifyAdmin, usersControllers.inviteUser);
 router.post("/register", usersControllers.registerWithInvite);
 router.post("/login", usersControllers.login);
-
-//The autoLogin function is called when the Access Token expires only and validate Refresh token
+router.post("/forgotPassword", usersControllers.requestPasswordReset);
+router.post("/resetPassword", usersControllers.resetPassword);
 router.post("/autoLogin", usersControllers.autoLogin);
-
-//These two might be delete or edit
 router.get("/", verify.verifyAdmin, usersControllers.getAllUsers);
 router.delete("/:id", verify.verifyAdmin, usersControllers.deleteById);
 

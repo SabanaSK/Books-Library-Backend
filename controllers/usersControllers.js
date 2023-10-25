@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Token from "../models/Token.js";
 import InviteToken from "../models/InviteToken.js";
+import ResetPasswordToken from "../models/ResetPassworToken.js";
 import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
@@ -25,7 +26,7 @@ const inviteUser = async (req, res, next) => {
       email,
       "active",
       new Date(),
-      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Expires in 7 days
+      new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
     );
 
     await inviteToken.save();
@@ -33,11 +34,11 @@ const inviteUser = async (req, res, next) => {
       null,
       username, // We will set the username later when they register
       email,
-      null, // Password will be set later
       null,
       null,
       null,
-      "invited", // set status to "invited"
+      null,
+      "invited",
       "user"
     );
 
@@ -143,6 +144,81 @@ const autoLogin = async (req, res, next) => {
     next(error);
   }
 };
+const requestPasswordReset = async (req, res, next) => {
+  try {
+    const user = await User.findByEmail(req.body.email);
+    if (!user) {
+      return res.status(400).json({ message: "User not found." });
+    }
+
+    const resetToken = uuidv4();
+    const token = new ResetPasswordToken(
+      null,
+      user.id,
+      resetToken,
+      "active",
+      new Date(),
+      new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
+    );
+
+    await token.save();
+
+    const resetURL = `http://localhost:${process.env.PORT}/reset-password?token=${resetToken}`;
+    req.emailDetails = {
+      to: user.email,
+      subject: "Reset Password Request",
+      body: `Click on the link to reset your password: ${resetURL}`,
+    };
+    sendEmail(req, res, next);
+
+    res
+      .status(200)
+      .json({ message: "Reset password email sent successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+    next(error);
+  }
+};
+const resetPassword = async (req, res, next) => {
+  try {
+    const { resetToken, newPassword, confirmPassword } = req.body;
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match." });
+    }
+
+    const storedToken = await ResetPasswordToken.findByToken(resetToken);
+
+    if (
+      !storedToken ||
+      new Date(storedToken.expiresAt) < new Date() ||
+      storedToken.status !== "active"
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired reset token." });
+    }
+
+    const user = await User.findById(storedToken.requestUserId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await User.update(user);
+
+    await ResetPasswordToken.deactivate(resetToken);
+
+    res.status(200).json({ message: "Password reset successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+    next(error);
+  }
+};
 
 const getAllUsers = async (req, res, next) => {
   try {
@@ -172,6 +248,8 @@ export default {
   registerWithInvite,
   login,
   autoLogin,
+  requestPasswordReset,
+  resetPassword,
   getAllUsers,
   deleteById,
 };
