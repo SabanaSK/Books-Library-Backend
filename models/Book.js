@@ -1,7 +1,9 @@
 import db from "../config/db.js";
+import { v4 as uuidv4 } from "uuid";
 
 class Book {
   constructor(title, genre, author, createdBy, createdAt, updateBy, updateAt) {
+    this.id = uuidv4();
     this.title = title;
     this.genre = genre;
     this.author = author;
@@ -15,7 +17,7 @@ class Book {
   async ensureTableExists() {
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS postsbook (
-        Id INT AUTO_INCREMENT PRIMARY KEY,
+        Id VARCHAR(36) PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         genre VARCHAR(100) NOT NULL,
         author VARCHAR(100) NOT NULL,
@@ -33,10 +35,11 @@ class Book {
   async save() {
     const currentDate = new Date();
     let sql = `
-      INSERT INTO postsbook(title, genre, author, createdBy, createdAt, updateBy, updateAt)
-      VALUES(?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO postsbook(Id, title, genre, author, createdBy, createdAt, updateBy, updateAt)
+      VALUES(?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const [newPost] = await db.execute(sql, [
+      this.id,
       this.title,
       this.genre,
       this.author,
