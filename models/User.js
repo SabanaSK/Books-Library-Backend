@@ -1,4 +1,5 @@
 import db from "../config/db.js";
+import { v4 as uuidv4 } from "uuid";
 
 class User {
   constructor(
@@ -12,7 +13,7 @@ class User {
     status,
     role
   ) {
-    this.id = id;
+    this.id = id || uuidv4();
     this.username = username;
     this.email = email;
     this.password = password;
@@ -26,33 +27,33 @@ class User {
 
   async ensureTablesExist() {
     const createUsersTableSQL = `
-  CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255),
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updatedAt TIMESTAMP NULL DEFAULT NULL,
-    deletedAt TIMESTAMP NULL DEFAULT NULL,
-    status VARCHAR(50) DEFAULT 'active',
-    role VARCHAR(50) DEFAULT 'user' 
-  );
-`;
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(36) PRIMARY KEY,  
+        username VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        updatedAt TIMESTAMP NULL DEFAULT NULL,
+        deletedAt TIMESTAMP NULL DEFAULT NULL,
+        status VARCHAR(50) DEFAULT 'active',
+        role VARCHAR(50) DEFAULT 'user' 
+      );
+    `;
     await db.execute(createUsersTableSQL);
   }
 
   async save() {
     const sql = `
-      INSERT INTO users(username, email, password, status, role) 
-      VALUES(?, ?, ?, ?, ?)`;
-    const [newUser] = await db.execute(sql, [
+      INSERT INTO users(id, username, email, password, status, role) 
+      VALUES(?, ?, ?, ?, ?, ?)`;
+    await db.execute(sql, [
+      this.id, // Insert the UUID
       this.username,
       this.email,
       this.password,
       this.status,
       this.role,
     ]);
-    this.id = newUser.insertId;
     return this;
   }
 

@@ -9,7 +9,7 @@ router.post("/login", usersControllers.login);
 router.post("/forgotPassword", usersControllers.requestPasswordReset);
 router.post("/resetPassword", usersControllers.resetPassword);
 router.post("/autoLogin", usersControllers.autoLogin);
-router.get("/", verify.verifyAdmin, usersControllers.getAllUsers);
+router.get("/", usersControllers.getAllUsers);
 router.delete("/:id", verify.verifyAdmin, usersControllers.deleteById);
 
 export default router;

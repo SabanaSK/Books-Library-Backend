@@ -3,7 +3,7 @@ import User from "./models/User.js";
 import Book from "./models/Book.js";
 import Token from "./models/Token.js";
 import InviteToken from "./models/InviteToken.js";
-import ResetToken from "./models/ResetPassworToken.js";
+import ResetToken from "./models/ResetPasswordToken.js";
 import bcrypt from "bcryptjs";
 import * as dotenv from "dotenv";
 

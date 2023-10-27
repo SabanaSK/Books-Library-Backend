@@ -1,8 +1,9 @@
 import db from "../config/db.js";
+import { v4 as uuidv4 } from "uuid";
 
 class InviteToken {
-  constructor(id, inviterId, inviteToken, email, status, issuedAt, expiresAt) {
-    this.id = id;
+  constructor(inviterId, inviteToken, email, status, issuedAt, expiresAt) {
+    this.id = uuidv4();
     this.inviterId = inviterId;
     this.inviteToken = inviteToken;
     this.email = email;
@@ -15,8 +16,8 @@ class InviteToken {
   async ensureInviteTokenTableExist() {
     const inviteTokensTableSQL = `
       CREATE TABLE IF NOT EXISTS inviteTokens (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        inviterId INT NOT NULL,
+        Id VARCHAR(36) PRIMARY KEY,
+        inviterId VARCHAR(36) NOT NULL,
         inviteToken VARCHAR(512) UNIQUE NOT NULL,  
         email VARCHAR(255) UNIQUE NOT NULL,
         status VARCHAR(50) DEFAULT 'active',
@@ -31,15 +32,15 @@ class InviteToken {
 
   async save() {
     const sql =
-      "INSERT INTO inviteTokens(inviterId, inviteToken, email, expiresAt) VALUES(?, ?, ?, ?)";
+      "INSERT INTO inviteTokens(Id, inviterId, inviteToken, email, expiresAt) VALUES(?, ?, ?, ?, ?)";
     const [newToken] = await db.execute(sql, [
+      this.id,
       this.inviterId,
       this.inviteToken,
       this.email,
       this.expiresAt,
     ]);
-    this.id = newToken.insertId;
-    return this;
+    return newToken;
   }
 
   static async findAll() {

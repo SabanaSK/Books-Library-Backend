@@ -14,7 +14,7 @@ class Token {
     const createTokensTableSQL = `
       CREATE TABLE IF NOT EXISTS tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        userId INT NOT NULL,
+        userId VARCHAR(36) NOT NULL,
         token VARCHAR(512) UNIQUE NOT NULL,  
         issuedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         expiresAt TIMESTAMP NOT NULL,      
@@ -47,7 +47,7 @@ class Token {
       return null;
     }
     return tokens[0].id;
-}
+  }
 
   static async findRefreshTokenForUser(userId, token) {
     const sql = "SELECT token FROM tokens WHERE userId = ? AND token = ?";

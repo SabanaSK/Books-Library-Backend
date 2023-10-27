@@ -1,8 +1,9 @@
 import db from "../config/db.js";
+import { v4 as uuidv4 } from "uuid";
 
 class ResetPasswordToken {
-  constructor(id, requestUserId, resetToken, status, issuedAt, expiresAt) {
-    this.id = id;
+  constructor(requestUserId, resetToken, status, issuedAt, expiresAt) {
+    this.id = uuidv4();
     this.requestUserId = requestUserId;
     this.resetToken = resetToken;
     this.status = status || "active";
@@ -14,13 +15,12 @@ class ResetPasswordToken {
   async ensureResetTokenTableExist() {
     const resetTokensTableSQL = `
       CREATE TABLE IF NOT EXISTS resetTokens (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        requestUserId INT NOT NULL,
+        Id VARCHAR(36) PRIMARY KEY,
+        requestUserId VARCHAR(36) NOT NULL,
         resetToken VARCHAR(512) UNIQUE NOT NULL,  
         status VARCHAR(50) DEFAULT 'active',
         issuedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        expiresAt TIMESTAMP NOT NULL,      
-        FOREIGN KEY (requestUserId) REFERENCES users(id)
+        expiresAt TIMESTAMP NOT NULL
       );
     `;
     await db.execute(resetTokensTableSQL);
@@ -28,14 +28,14 @@ class ResetPasswordToken {
 
   async save() {
     const sql =
-      "INSERT INTO resetTokens( requestUserId, resetToken,  expiresAt) VALUES(?, ?, ?)";
+      "INSERT INTO resetTokens(Id, requestUserId, resetToken,  expiresAt) VALUES(?, ?, ?, ?)";
     const [newToken] = await db.execute(sql, [
+      this.id,
       this.requestUserId,
       this.resetToken,
       this.expiresAt,
     ]);
-    this.id = newToken.insertId;
-    return this;
+    return newToken;
   }
 
   static async findByToken(token) {

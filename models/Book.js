@@ -21,9 +21,9 @@ class Book {
         title VARCHAR(255) NOT NULL,
         genre VARCHAR(100) NOT NULL,
         author VARCHAR(100) NOT NULL,
-        createdBy INT NOT NULL,
+        createdBy VARCHAR(36) NOT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        updateBy INT NULL DEFAULT NULL,
+        updateBy VARCHAR(36) NULL DEFAULT NULL,
         updateAt TIMESTAMP NULL DEFAULT NULL,
         FOREIGN KEY (createdBy) REFERENCES users(Id),
         FOREIGN KEY (updateBy) REFERENCES users(Id)

@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Token from "../models/Token.js";
 import InviteToken from "../models/InviteToken.js";
-import ResetPasswordToken from "../models/ResetPassworToken.js";
+import ResetPasswordToken from "../models/ResetPasswordToken.js";
 import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
@@ -25,7 +25,6 @@ const inviteUser = async (req, res, next) => {
     }
 
     const inviteToken = new InviteToken(
-      null,
       req.user.id,
       uuidv4(),
       email,
@@ -98,6 +97,7 @@ const login = async (req, res, next) => {
 
   try {
     const user = await User.findByEmail(email);
+    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
