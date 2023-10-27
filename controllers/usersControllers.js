@@ -19,6 +19,11 @@ const inviteUser = async (req, res, next) => {
   try {
     const { username, email } = req.body;
 
+    const existingUserWithUsername = await User.findByUsername(username);
+    if (existingUserWithUsername) {
+      return res.status(400).json({ message: "Username already exists." });
+    }
+
     const inviteToken = new InviteToken(
       null,
       req.user.id,
@@ -32,7 +37,7 @@ const inviteUser = async (req, res, next) => {
     await inviteToken.save();
     const user = new User(
       null,
-      username, // We will set the username later when they register
+      username,
       email,
       null,
       null,
@@ -62,25 +67,20 @@ const inviteUser = async (req, res, next) => {
 };
 
 const registerWithInvite = async (req, res) => {
+  const { inviteToken, password } = req.body;
   try {
-    const inviteToken = req.body.inviteToken;
     const storedToken = await InviteToken.findByToken(inviteToken);
-
     if (!storedToken || new Date(storedToken.expiresAt) < new Date()) {
       return res
         .status(400)
         .json({ message: "Invalid or expired invite token." });
     }
     const existingUser = await User.findByEmail(storedToken.email);
-
     if (existingUser) {
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
       existingUser.password = hashedPassword;
-      existingUser.username = req.body.username;
       await User.update(existingUser);
-
       await InviteToken.deactivate(inviteToken);
-
       return res
         .status(200)
         .json({ message: "Registration completed successfully." });

@@ -13,7 +13,7 @@ const setupDatabase = async () => {
   const user = new User();
   await user.ensureTablesExist();
 
-  const adminUser = await User.findByEmail(process.env.ADMIN_EMAIL);
+  const adminUser = await User.findByUsername(process.env.ADMIN_USERNAME);
   if (!adminUser) {
     console.log("Admin user not found, creating one...");
     const newPassword = process.env.ADMIN_PASSWORD;

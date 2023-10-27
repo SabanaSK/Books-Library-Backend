@@ -62,6 +62,27 @@ class User {
     return allUsers;
   }
 
+  static async findByUsername(username) {
+    const sql = "SELECT * FROM users WHERE username = ?";
+    const [users] = await db.execute(sql, [username]);
+
+    if (users.length === 0) {
+      return null;
+    }
+    const user = users[0];
+    return new User(
+      user.id,
+      user.username,
+      user.email,
+      user.password,
+      user.createdAt,
+      user.updatedAt,
+      user.deletedAt,
+      user.status,
+      user.role
+    );
+  }
+
   static async findByEmail(email) {
     const sql = "SELECT * FROM users WHERE email = ?";
     const [users] = await db.execute(sql, [email]);
