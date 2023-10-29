@@ -9,6 +9,8 @@ router.post("/login", usersControllers.login);
 router.post("/forgotPassword", usersControllers.requestPasswordReset);
 router.post("/resetPassword", usersControllers.resetPassword);
 router.post("/autoLogin", usersControllers.autoLogin);
+
+//Double check at the end if it needed
 router.get("/", verify.verifyAdmin, usersControllers.getAllUsers);
 router.delete("/:id", verify.verifyAdmin, usersControllers.deleteById);
 

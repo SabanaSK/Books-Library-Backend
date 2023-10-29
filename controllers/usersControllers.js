@@ -6,7 +6,6 @@ import ResetPasswordToken from "../models/ResetPasswordToken.js";
 import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
-
 import {
   generateAccessToken,
   generateAndStoreTokens,
@@ -106,8 +105,15 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
     const { accessToken, refreshToken } = await generateAndStoreTokens(user);
+    const responseUser = {
+      id: user.id,
+      username: user.username,
+      status: user.status,
+      role: user.role,
+    };
+
     res.cookie("refreshToken", refreshToken, { httpOnly: true });
-    res.status(200).json({ accessToken, user });
+    res.status(200).json({ accessToken, user: responseUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
@@ -135,9 +141,14 @@ const autoLogin = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    const responseUser = {
+      id: user.id,
+      username: user.username,
+      status: user.status,
+      role: user.role,
+    };
     const accessToken = generateAccessToken(user);
-    res.json({ accessToken, user });
+    res.json({ accessToken, user: responseUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
