@@ -73,7 +73,10 @@ const registerWithInvite = async (req, res) => {
   const { inviteToken, password } = req.body;
   try {
     const storedToken = await InviteToken.findByToken(inviteToken);
-
+    // Validate password format
+    if (!Validator.isValidatePassword(password)) {
+      return res.status(400).json({ message: "Invalid password format." });
+    }
     if (!Validator(storedToken.email)) {
       return res.status(400).json({ message: "Invalid email format." });
     }
@@ -103,7 +106,7 @@ const registerWithInvite = async (req, res) => {
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
-  if (!Validator(email)) {
+  if (!Validator.isVAlidEmail(email)) {
     return res.status(400).json({ message: "Invalid email format." });
   }
   try {
