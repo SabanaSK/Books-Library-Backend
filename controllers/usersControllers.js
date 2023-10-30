@@ -6,6 +6,7 @@ import ResetPasswordToken from "../models/ResetPasswordToken.js";
 import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
+import Validator from "../utils/validator.js";
 import {
   generateAccessToken,
   generateAndStoreTokens,
@@ -17,6 +18,10 @@ dotenv.config();
 const inviteUser = async (req, res, next) => {
   try {
     const { username, email } = req.body;
+
+    if (!Validator(email)) {
+      return res.status(400).json({ message: "Invalid email format." });
+    }
 
     const existingUserWithUsername = await User.findByUsername(username);
     if (existingUserWithUsername) {
@@ -68,6 +73,11 @@ const registerWithInvite = async (req, res) => {
   const { inviteToken, password } = req.body;
   try {
     const storedToken = await InviteToken.findByToken(inviteToken);
+
+    if (!Validator(storedToken.email)) {
+      return res.status(400).json({ message: "Invalid email format." });
+    }
+
     if (!storedToken || new Date(storedToken.expiresAt) < new Date()) {
       return res
         .status(400)
@@ -93,7 +103,9 @@ const registerWithInvite = async (req, res) => {
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
-
+  if (!Validator(email)) {
+    return res.status(400).json({ message: "Invalid email format." });
+  }
   try {
     const user = await User.findByEmail(email);
     console.log(user);
@@ -155,9 +167,16 @@ const autoLogin = async (req, res, next) => {
     next(error);
   }
 };
+
 const requestPasswordReset = async (req, res, next) => {
   try {
-    const user = await User.findByEmail(req.body.email);
+    const { email } = req.body;
+
+    if (!Validator(email)) {
+      return res.status(400).json({ message: "Invalid email format." });
+    }
+    const user = await User.findByEmail(email);
+
     if (!user) {
       return res.status(400).json({ message: "User not found." });
     }
@@ -191,6 +210,7 @@ const requestPasswordReset = async (req, res, next) => {
     next(error);
   }
 };
+
 const resetPassword = async (req, res, next) => {
   try {
     const { resetToken, newPassword, confirmPassword } = req.body;
