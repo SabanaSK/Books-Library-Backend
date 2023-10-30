@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
 import Validator from "../utils/validator.js";
+
 import {
   generateAccessToken,
   generateAndStoreTokens,
@@ -76,6 +77,12 @@ const registerWithInvite = async (req, res) => {
     // Validate password format
     if (!Validator.isValidatePassword(password)) {
       return res.status(400).json({ message: "Invalid password format." });
+    }
+    if (commonPasswords.includes(password)) {
+      return res.status(400).json({
+        message:
+          "Please choose a stronger password. The one provided is too common.",
+      });
     }
     if (!Validator(storedToken.email)) {
       return res.status(400).json({ message: "Invalid email format." });
