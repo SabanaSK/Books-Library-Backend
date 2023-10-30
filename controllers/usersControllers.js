@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
 import Validator from "../utils/validator.js";
-
+import { commonPasswords } from "../data/commonPassword.js";
 import {
   generateAccessToken,
   generateAndStoreTokens,
@@ -20,7 +20,7 @@ const inviteUser = async (req, res, next) => {
   try {
     const { username, email } = req.body;
 
-    if (!Validator(email)) {
+    if (!Validator.isVAlidEmail(email)) {
       return res.status(400).json({ message: "Invalid email format." });
     }
 
@@ -74,7 +74,7 @@ const registerWithInvite = async (req, res) => {
   const { inviteToken, password } = req.body;
   try {
     const storedToken = await InviteToken.findByToken(inviteToken);
-    // Validate password format
+
     if (!Validator.isValidatePassword(password)) {
       return res.status(400).json({ message: "Invalid password format." });
     }
@@ -83,9 +83,6 @@ const registerWithInvite = async (req, res) => {
         message:
           "Please choose a stronger password. The one provided is too common.",
       });
-    }
-    if (!Validator(storedToken.email)) {
-      return res.status(400).json({ message: "Invalid email format." });
     }
 
     if (!storedToken || new Date(storedToken.expiresAt) < new Date()) {
@@ -118,7 +115,6 @@ const login = async (req, res, next) => {
   }
   try {
     const user = await User.findByEmail(email);
-    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -182,7 +178,7 @@ const requestPasswordReset = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    if (!Validator(email)) {
+    if (!Validator.isVAlidEmail(email)) {
       return res.status(400).json({ message: "Invalid email format." });
     }
     const user = await User.findByEmail(email);
@@ -227,6 +223,15 @@ const resetPassword = async (req, res, next) => {
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match." });
+    }
+    if (!Validator.isValidatePassword(password)) {
+      return res.status(400).json({ message: "Invalid password format." });
+    }
+    if (commonPasswords.includes(password)) {
+      return res.status(400).json({
+        message:
+          "Please choose a stronger password. The one provided is too common.",
+      });
     }
 
     const storedToken = await ResetPasswordToken.findByToken(resetToken);

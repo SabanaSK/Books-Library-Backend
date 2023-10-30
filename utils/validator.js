@@ -1,4 +1,4 @@
-import { commonPasswords } from "../utils/commonPassword.js";
+import { commonPasswords } from "../data/commonPassword.js";
 const isVAlidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   return emailRegex.test(email);
@@ -14,7 +14,7 @@ const isValidatePassword = (password) => {
   }
 
   const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,20}$/;
   return passwordRegex.test(password);
 };
 

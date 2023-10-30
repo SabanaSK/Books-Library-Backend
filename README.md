@@ -48,3 +48,19 @@ SENDGRID_API_KEY=[YOUR_SENDGRID_API_KEY]
 npm start
 
 You should see the app running on the specified PORT, Example http://localhost:8080.
+
+## Password Policy
+
+To ensure the security of your account, we have implemented a strict password policy. When creating a password, please adhere to the following guidelines:
+
+Length: Your password must be between 8 to 20 characters in length.
+
+Character Types: Your password must include the following:
+
+At least one lowercase letter (a-z)
+At least one uppercase letter (A-Z)
+At least one digit (0-9)
+At least one special character from the following set: @ $ ! % * ? & _
+Common Passwords: Avoid using easily guessable and common passwords (e.g., "password123", "letmein", etc.). These won't be accepted.
+
+No Spaces: Your password should not contain any spaces.
