@@ -134,6 +134,12 @@ class User {
     const sql = "UPDATE users SET username = ?, password = ? WHERE email = ?";
     await db.execute(sql, [user.username, user.password, user.email]);
   }
+  static async updateRoleById(email, role) {
+    const sql = "UPDATE users SET role = ? WHERE email = ?";
+    const [result] = await db.execute(sql, [role, email]);
+    console.log(result); //< Log the result
+    return result;
+  }
 }
 
 export default User;

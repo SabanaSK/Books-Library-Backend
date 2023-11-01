@@ -16,7 +16,7 @@ import {
 
 dotenv.config();
 
-const inviteUser = async (req, res, next) => {
+const inviteUser = async (req, res) => {
   try {
     const { username, email } = req.body;
 
@@ -66,7 +66,6 @@ const inviteUser = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
@@ -108,7 +107,7 @@ const registerWithInvite = async (req, res) => {
   }
 };
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
   if (!Validator.isVAlidEmail(email)) {
     return res.status(400).json({ message: "Invalid email format." });
@@ -135,11 +134,10 @@ const login = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const autoLogin = async (req, res, next) => {
+const autoLogin = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
@@ -170,11 +168,10 @@ const autoLogin = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const requestPasswordReset = async (req, res, next) => {
+const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -205,7 +202,7 @@ const requestPasswordReset = async (req, res, next) => {
       subject: "Reset Password Request",
       body: `Click on the link to reset your password: ${resetURL}`,
     };
-    sendEmail(req, res, next);
+    sendEmail(req, res);
 
     res
       .status(200)
@@ -213,11 +210,10 @@ const requestPasswordReset = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const resetPassword = async (req, res, next) => {
+const resetPassword = async (req, res) => {
   try {
     const { resetToken, newPassword, confirmPassword } = req.body;
 
@@ -262,22 +258,46 @@ const resetPassword = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const getAllUsers = async (req, res, next) => {
+const updateUser = async (req, res) => {
+  try {
+
+    const { role, email } = req.body;
+
+    if (role !== "admin" && role !== "user") {
+      return res.status(400).json({ message: "Invalid role provided" });
+    }
+
+    const user = await User.findByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.updateRoleById({ role }, { where: { email } });
+
+    res
+      .status(200)
+      .json({ message: "Role updated successfully", updatedRole: role });
+  } catch (error) {
+    console.error("Error updating user's role:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getAllUsers = async (req, res) => {
   try {
     const posts = await User.findAll();
     res.status(200).json(posts);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const deleteById = async (req, res, next) => {
+const deleteById = async (req, res) => {
   try {
     const id = req.params.id;
     await User.deleteById(id);
@@ -285,7 +305,6 @@ const deleteById = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
@@ -296,6 +315,7 @@ export default {
   autoLogin,
   requestPasswordReset,
   resetPassword,
+  updateUser,
   getAllUsers,
   deleteById,
 };
