@@ -115,7 +115,6 @@ const login = async (req, res) => {
   }
   try {
     const user = await User.findByEmail(email);
-    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -185,7 +184,6 @@ const requestPasswordReset = async (req, res, next) => {
     if (!user) {
       return res.status(400).json({ message: "User not found." });
     }
-    console.log(user.id);
     const resetToken = uuidv4();
     const token = new ResetPasswordToken(
       user.id,
