@@ -2,24 +2,25 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const verifyAdmin = async (req, res, next) => {
-  try { 
-    const token = req.header('Authorization').replace('Bearer ', '');
+  try {
+    const token = req.header("Authorization").replace("Bearer ", "");
 
     if (!token) {
-      return res.status(401).json({ message: "No token, authorization denied" });
+      return res
+        .status(401)
+        .json({ message: "No token, authorization denied" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_KEY);
     const user = await User.findById(decoded.user.id);
-
     if (!user) {
       return res.status(404).json({ message: "User does not exist" });
     }
-    if (user.role !== 'admin') {
+    if (user.role !== "admin") {
       return res.status(403).json({ message: "Permission denied" });
     }
     req.user = user;
-    next(); 
+    next();
   } catch (err) {
     console.error("Error in verifyAdmin middleware:", err.message);
     return res.status(401).json({ message: "Token is not valid" });
@@ -28,10 +29,12 @@ const verifyAdmin = async (req, res, next) => {
 
 const verifyAuth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization').replace('Bearer ', '');
+    const token = req.header("Authorization").replace("Bearer ", "");
 
     if (!token) {
-      return res.status(401).json({ message: "No token, authorization denied" });
+      return res
+        .status(401)
+        .json({ message: "No token, authorization denied" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_KEY);
@@ -41,7 +44,7 @@ const verifyAuth = async (req, res, next) => {
       return res.status(404).json({ message: "User does not exist" });
     }
 
-    req.user = user; 
+    req.user = user;
     next();
   } catch (err) {
     console.error("Error in verifyAuth middleware:", err.message);
@@ -49,6 +52,4 @@ const verifyAuth = async (req, res, next) => {
   }
 };
 
-
-
-export default {verifyAdmin, verifyAuth};
+export default { verifyAdmin, verifyAuth };

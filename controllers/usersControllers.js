@@ -16,7 +16,7 @@ import {
 
 dotenv.config();
 
-const inviteUser = async (req, res) => {
+const inviteUser = async (req, res, next) => {
   try {
     const { username, email } = req.body;
 
@@ -48,7 +48,8 @@ const inviteUser = async (req, res) => {
       null,
       null,
       "invited",
-      "user"
+      "user",
+      req.user.id 
     );
 
     await user.save();
@@ -57,7 +58,7 @@ const inviteUser = async (req, res) => {
     req.emailDetails = {
       to: email,
       subject: "You are invited to our platform!",
-      body: `Click on the link to register: ${inviteURL}, Here is your ${inviteToken} `,
+      body: `Click on the link to register: ${inviteURL}`,
     };
 
     sendEmail(req, res, next);
@@ -114,6 +115,7 @@ const login = async (req, res) => {
   }
   try {
     const user = await User.findByEmail(email);
+    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -171,7 +173,7 @@ const autoLogin = async (req, res) => {
   }
 };
 
-const requestPasswordReset = async (req, res) => {
+const requestPasswordReset = async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -183,10 +185,9 @@ const requestPasswordReset = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "User not found." });
     }
-
+    console.log(user.id);
     const resetToken = uuidv4();
     const token = new ResetPasswordToken(
-      null,
       user.id,
       resetToken,
       "active",
@@ -202,7 +203,7 @@ const requestPasswordReset = async (req, res) => {
       subject: "Reset Password Request",
       body: `Click on the link to reset your password: ${resetURL}`,
     };
-    sendEmail(req, res);
+    sendEmail(req, res, next);
 
     res
       .status(200)
@@ -220,10 +221,13 @@ const resetPassword = async (req, res) => {
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match." });
     }
-    if (!Validator.isValidatePassword(password)) {
+
+    // Assuming Validator is a utility to validate passwords
+    if (!Validator.isValidatePassword(newPassword)) {
       return res.status(400).json({ message: "Invalid password format." });
     }
-    if (commonPasswords.includes(password)) {
+
+    if (commonPasswords.includes(newPassword)) {
       return res.status(400).json({
         message:
           "Please choose a stronger password. The one provided is too common.",
@@ -242,15 +246,8 @@ const resetPassword = async (req, res) => {
         .json({ message: "Invalid or expired reset token." });
     }
 
-    const user = await User.findById(storedToken.requestUserId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await User.update(user);
+    await User.updatePassword(storedToken.requestUserId, hashedPassword);
 
     await ResetPasswordToken.deactivate(resetToken);
 
@@ -263,20 +260,21 @@ const resetPassword = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-
-    const { role, email } = req.body;
+    const { id } = req.params;
+    const { role } = req.body;
+    const adminId = req.user.id;
 
     if (role !== "admin" && role !== "user") {
       return res.status(400).json({ message: "Invalid role provided" });
     }
 
-    const user = await User.findByEmail(email);
+    const user = await User.findById(id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await User.updateRoleById({ role }, { where: { email } });
+    await User.updateRoleById(role, id, adminId);
 
     res
       .status(200)
