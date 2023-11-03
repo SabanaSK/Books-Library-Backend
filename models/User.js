@@ -54,7 +54,7 @@ class User {
       this.password,
       this.createdAt,
       this.updatedBy,
-      this.updatedAt, 
+      this.updatedAt,
       this.status,
       this.role,
     ]);
@@ -150,11 +150,17 @@ class User {
     const sql = `DELETE FROM users WHERE Id = ?`;
     await db.execute(sql, [id]);
   }
-  static async updatePassword(userId, hashedPassword) {
-    const sql = "UPDATE users SET password = ? WHERE id = ?";
-    const [result] = await db.execute(sql, [hashedPassword, userId]);
-    return result;
+  
+  static async updatePassword(userId, hashedPassword, updatedBy) {
+    const updatedAt = new Date();
+    const sql = `
+      UPDATE users 
+      SET password = ?, updatedBy = ?, updatedAt = ?
+      WHERE id = ?`;
+
+    await db.execute(sql, [hashedPassword, updatedBy, updatedAt, userId]);
   }
+
   static async updateRoleById(role, id, adminId) {
     const sql =
       "UPDATE users SET role = ?, updatedBy = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?";

@@ -49,7 +49,7 @@ const inviteUser = async (req, res, next) => {
       null,
       "invited",
       "user",
-      req.user.id 
+      req.user.id
     );
 
     await user.save();
@@ -221,8 +221,6 @@ const resetPassword = async (req, res) => {
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match." });
     }
-
-    // Assuming Validator is a utility to validate passwords
     if (!Validator.isValidatePassword(newPassword)) {
       return res.status(400).json({ message: "Invalid password format." });
     }
@@ -247,7 +245,11 @@ const resetPassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await User.updatePassword(storedToken.requestUserId, hashedPassword);
+    await User.updatePassword(
+      storedToken.requestUserId,
+      hashedPassword,
+      storedToken.requestUserId
+    );
 
     await ResetPasswordToken.deactivate(resetToken);
 
