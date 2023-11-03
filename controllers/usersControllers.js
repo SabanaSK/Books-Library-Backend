@@ -48,7 +48,8 @@ const inviteUser = async (req, res, next) => {
       null,
       null,
       "invited",
-      "user"
+      "user",
+      req.user.id
     );
 
     await user.save();
@@ -57,7 +58,7 @@ const inviteUser = async (req, res, next) => {
     req.emailDetails = {
       to: email,
       subject: "You are invited to our platform!",
-      body: `Click on the link to register: ${inviteURL}, Here is your ${inviteToken} `,
+      body: `Click on the link to register: ${inviteURL}`,
     };
 
     sendEmail(req, res, next);
@@ -66,7 +67,6 @@ const inviteUser = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
@@ -108,13 +108,14 @@ const registerWithInvite = async (req, res) => {
   }
 };
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
   if (!Validator.isVAlidEmail(email)) {
     return res.status(400).json({ message: "Invalid email format." });
   }
   try {
     const user = await User.findByEmail(email);
+    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -135,11 +136,10 @@ const login = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const autoLogin = async (req, res, next) => {
+const autoLogin = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
@@ -170,7 +170,6 @@ const autoLogin = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
@@ -186,10 +185,9 @@ const requestPasswordReset = async (req, res, next) => {
     if (!user) {
       return res.status(400).json({ message: "User not found." });
     }
-
+    console.log(user.id);
     const resetToken = uuidv4();
     const token = new ResetPasswordToken(
-      null,
       user.id,
       resetToken,
       "active",
@@ -213,21 +211,21 @@ const requestPasswordReset = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const resetPassword = async (req, res, next) => {
+const resetPassword = async (req, res) => {
   try {
     const { resetToken, newPassword, confirmPassword } = req.body;
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match." });
     }
-    if (!Validator.isValidatePassword(password)) {
+    if (!Validator.isValidatePassword(newPassword)) {
       return res.status(400).json({ message: "Invalid password format." });
     }
-    if (commonPasswords.includes(password)) {
+
+    if (commonPasswords.includes(newPassword)) {
       return res.status(400).json({
         message:
           "Please choose a stronger password. The one provided is too common.",
@@ -246,15 +244,12 @@ const resetPassword = async (req, res, next) => {
         .json({ message: "Invalid or expired reset token." });
     }
 
-    const user = await User.findById(storedToken.requestUserId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await User.update(user);
+    await User.updatePassword(
+      storedToken.requestUserId,
+      hashedPassword,
+      storedToken.requestUserId
+    );
 
     await ResetPasswordToken.deactivate(resetToken);
 
@@ -262,22 +257,47 @@ const resetPassword = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const getAllUsers = async (req, res, next) => {
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    const adminId = req.user.id;
+
+    if (role !== "admin" && role !== "user") {
+      return res.status(400).json({ message: "Invalid role provided" });
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.updateRoleById(role, id, adminId);
+
+    res
+      .status(200)
+      .json({ message: "Role updated successfully", updatedRole: role });
+  } catch (error) {
+    console.error("Error updating user's role:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getAllUsers = async (req, res) => {
   try {
     const posts = await User.findAll();
     res.status(200).json(posts);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
-const deleteById = async (req, res, next) => {
+const deleteById = async (req, res) => {
   try {
     const id = req.params.id;
     await User.deleteById(id);
@@ -285,7 +305,6 @@ const deleteById = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
   }
 };
 
@@ -296,6 +315,7 @@ export default {
   autoLogin,
   requestPasswordReset,
   resetPassword,
+  updateUser,
   getAllUsers,
   deleteById,
 };

@@ -8,8 +8,8 @@ class User {
     email,
     password,
     createdAt,
+    updatedBy,
     updatedAt,
-    deletedAt,
     status,
     role
   ) {
@@ -18,8 +18,8 @@ class User {
     this.email = email;
     this.password = password;
     this.createdAt = createdAt;
+    this.updatedBy = updatedBy;
     this.updatedAt = updatedAt;
-    this.deletedAt = deletedAt;
     this.status = status;
     this.role = role;
     this.ensureTablesExist();
@@ -33,8 +33,8 @@ class User {
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255),
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        updatedBy VARCHAR(36) NULL,
         updatedAt TIMESTAMP NULL DEFAULT NULL,
-        deletedAt TIMESTAMP NULL DEFAULT NULL,
         status VARCHAR(50) DEFAULT 'active',
         role VARCHAR(50) DEFAULT 'user' 
       );
@@ -42,12 +42,32 @@ class User {
     await db.execute(createUsersTableSQL);
   }
 
+  async CreateTable() {
+    const sql = `
+      INSERT INTO users(
+        id, username, email, password, createdAt, updatedBy, updatedAt, status, role
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    await db.execute(sql, [
+      this.id,
+      this.username,
+      this.email,
+      this.password,
+      this.createdAt,
+      this.updatedBy,
+      this.updatedAt,
+      this.status,
+      this.role,
+    ]);
+    return this;
+  }
+
   async save() {
     const sql = `
-      INSERT INTO users(id, username, email, password, status, role) 
-      VALUES(?, ?, ?, ?, ?, ?)`;
+      INSERT INTO users(
+        id, username, email, password, status, role
+      ) VALUES (?, ?, ?, ?, ?, ?)`;
     await db.execute(sql, [
-      this.id, // Insert the UUID
+      this.id,
       this.username,
       this.email,
       this.password,
@@ -130,9 +150,21 @@ class User {
     const sql = `DELETE FROM users WHERE Id = ?`;
     await db.execute(sql, [id]);
   }
-  static async update(user) {
-    const sql = "UPDATE users SET username = ?, password = ? WHERE email = ?";
-    await db.execute(sql, [user.username, user.password, user.email]);
+  
+  static async updatePassword(userId, hashedPassword, updatedBy) {
+    const updatedAt = new Date();
+    const sql = `
+      UPDATE users 
+      SET password = ?, updatedBy = ?, updatedAt = ?
+      WHERE id = ?`;
+
+    await db.execute(sql, [hashedPassword, updatedBy, updatedAt, userId]);
+  }
+
+  static async updateRoleById(role, id, adminId) {
+    const sql =
+      "UPDATE users SET role = ?, updatedBy = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?";
+    await db.execute(sql, [role, adminId, id]);
   }
 }
 

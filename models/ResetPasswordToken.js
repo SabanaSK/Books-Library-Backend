@@ -38,19 +38,25 @@ class ResetPasswordToken {
     return newToken;
   }
 
+  static async findAll() {
+    const sql = `SELECT * FROM resetTokens`;
+    const [allTokens] = await db.execute(sql);
+    return allTokens;
+  }
+
   static async findByToken(token) {
     const sql = "SELECT * FROM resetTokens WHERE resetToken = ?";
     const [tokens] = await db.execute(sql, [token]);
     if (tokens.length === 0) {
       return null;
     }
+   
     return new ResetPasswordToken(
-      tokens[0].id,
-      tokens[0].requestUserId,
-      tokens[0].resetToken,
-      tokens[0].status,
+      tokens[0].requestUserId, 
+      tokens[0].resetToken, 
+      tokens[0].status, 
       tokens[0].issuedAt,
-      tokens[0].expiresAt
+      tokens[0].expiresAt 
     );
   }
 

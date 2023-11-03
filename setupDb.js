@@ -24,13 +24,14 @@ const setupDatabase = async () => {
       process.env.ADMIN_USERNAME,
       process.env.ADMIN_EMAIL,
       hashedPassword,
-      null,
+      new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       null,
       null,
       "active",
       "admin"
     );
-    await newAdmin.save();
+
+    await newAdmin.CreateTable();
     console.log("Admin user created successfully!");
   }
   const book = new Book();
