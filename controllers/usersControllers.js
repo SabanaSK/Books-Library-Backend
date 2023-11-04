@@ -53,7 +53,7 @@ const inviteUser = async (req, res, next) => {
     );
 
     await user.save();
-    const inviteURL = `http://localhost:${process.env.PORT}/register?token=${inviteToken.inviteToken}`;
+    const inviteURL = `http://localhost:5173/register?token=${inviteToken.inviteToken}`;
 
     req.emailDetails = {
       to: email,
@@ -195,7 +195,7 @@ const requestPasswordReset = async (req, res, next) => {
 
     await token.save();
 
-    const resetURL = `http://localhost:${process.env.PORT}/reset-password?token=${resetToken}`;
+    const resetURL = `http://localhost:5173/reset-password?token=${resetToken}`;
     req.emailDetails = {
       to: user.email,
       subject: "Reset Password Request",
