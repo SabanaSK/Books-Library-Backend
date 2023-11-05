@@ -53,7 +53,7 @@ const inviteUser = async (req, res, next) => {
     );
 
     await user.save();
-    const inviteURL = `http://localhost:5173/register?token=${inviteToken.inviteToken}`;
+    const inviteURL = `http://localhost:5173/#/register?token=${inviteToken.inviteToken}`;
 
     req.emailDetails = {
       to: email,
@@ -71,7 +71,8 @@ const inviteUser = async (req, res, next) => {
 };
 
 const registerWithInvite = async (req, res) => {
-  const { inviteToken, password } = req.body;
+  const inviteToken = req.query.token;
+  const { password } = req.body;
   try {
     const storedToken = await InviteToken.findByToken(inviteToken);
 
