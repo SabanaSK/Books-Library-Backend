@@ -200,7 +200,7 @@ const requestPasswordReset = async (req, res, next) => {
 
     await token.save();
 
-    const resetURL = `http://localhost:5173/reset-password?token=${resetToken}`;
+    const resetURL = `http://localhost:5173/#/reset-password?token=${resetToken}`;
     req.emailDetails = {
       to: user.email,
       subject: "Reset Password Request",
