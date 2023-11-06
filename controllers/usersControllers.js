@@ -95,7 +95,11 @@ const registerWithInvite = async (req, res) => {
     if (existingUser) {
       const hashedPassword = await bcrypt.hash(password, 10);
       existingUser.password = hashedPassword;
-      await User.update(existingUser);
+      await User.updatePassword(
+        existingUser.id,
+        hashedPassword,
+        existingUser.id
+      );
       await InviteToken.deactivate(inviteToken);
       return res
         .status(200)
