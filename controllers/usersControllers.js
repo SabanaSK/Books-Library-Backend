@@ -218,9 +218,10 @@ const requestPasswordReset = async (req, res, next) => {
 };
 
 const resetPassword = async (req, res) => {
+  const resetToken = req.query.token;
+  const { newPassword, confirmPassword } = req.body;
   try {
-    const { resetToken, newPassword, confirmPassword } = req.body;
-
+    const storedToken = await ResetPasswordToken.findByToken(resetToken);
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match." });
     }
@@ -234,17 +235,12 @@ const resetPassword = async (req, res) => {
           "Please choose a stronger password. The one provided is too common.",
       });
     }
-
-    const storedToken = await ResetPasswordToken.findByToken(resetToken);
-
     if (
       !storedToken ||
       new Date(storedToken.expiresAt) < new Date() ||
       storedToken.status !== "active"
     ) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or expired reset token." });
+      return res.status(400).json({ message: "Invalid or expired ." });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
