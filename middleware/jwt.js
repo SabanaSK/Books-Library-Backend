@@ -17,7 +17,7 @@ const generateRefreshToken = (user) => {
     },
   };
   return jwt.sign(payload, process.env.JWT_REFRESH_KEY, {
-    expiresIn: "2d",
+    expiresIn: "7d",
   });
 };
 

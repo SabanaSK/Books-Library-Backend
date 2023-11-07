@@ -172,7 +172,7 @@ const autoLogin = async (req, res) => {
     const accessToken = generateAccessToken(user);
     res.json({ accessToken, user: responseUser });
   } catch (error) {
-    console.error(error);
+    console.log("Catch error:", error);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
