@@ -6,9 +6,10 @@ const router = express.Router();
 router.post("/invite", verify.verifyAdmin, usersControllers.inviteUser);
 router.post("/register", usersControllers.registerWithInvite);
 router.post("/login", usersControllers.login);
+router.post("/autoLogin", usersControllers.autoLogin);
+router.post("/currentUser", verify.verifyAuth, usersControllers.getCurrentUser);
 router.post("/forgotPassword", usersControllers.requestPasswordReset);
 router.post("/resetPassword", usersControllers.resetPassword);
-router.post("/autoLogin", usersControllers.autoLogin);
 router.patch("/:id", verify.verifyAdmin, usersControllers.updateUser);
 
 //Double check at the end if it needed

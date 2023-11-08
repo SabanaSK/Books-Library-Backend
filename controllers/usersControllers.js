@@ -11,6 +11,7 @@ import { commonPasswords } from "../data/commonPassword.js";
 import {
   generateAccessToken,
   generateAndStoreTokens,
+  verifyAccessToken,
   verifyRefreshToken,
 } from "../middleware/jwt.js";
 
@@ -177,6 +178,34 @@ const autoLogin = async (req, res) => {
   }
 };
 
+const getCurrentUser = async (req, res) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).json({ message: "No token provided." });
+  }
+  try {
+    const decodedToken = verifyAccessToken(token);
+    const userId = decodedToken.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const responseUser = {
+      id: user.id,
+      username: user.username,
+      status: user.status,
+      role: user.role,
+    };
+    res.status(200).json({ message: "Your current user", user: responseUser });
+  } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({ message: "Invalid token." });
+    } else {
+      res.status(500).json({ message: "Could not verify user." });
+    }
+  }
+};
+
 const requestPasswordReset = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -312,6 +341,7 @@ export default {
   registerWithInvite,
   login,
   autoLogin,
+  getCurrentUser,
   requestPasswordReset,
   resetPassword,
   updateUser,
