@@ -47,9 +47,9 @@ const createNewPost = async (req, res, next) => {
 const updatePostById = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const { title, image, genre, author } = req.body;
-
-    await Book.updateById(id, title, image, genre, author);
+    const { title, genre, author } = req.body;
+    const updateBy = req.user.id;
+    await Book.updateById(id, title, genre, author, updateBy);
 
     res.status(200).json({ message: "Post updated successfully." });
   } catch (error) {
