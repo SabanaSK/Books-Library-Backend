@@ -7,7 +7,7 @@ router.post("/invite", verify.verifyAdmin, usersControllers.inviteUser);
 router.post("/register", usersControllers.registerWithInvite);
 router.post("/login", usersControllers.login);
 router.post("/autoLogin", usersControllers.autoLogin);
-router.post("/currentUser", verify.verifyAuth, usersControllers.getCurrentUser);
+router.get("/currentUser", verify.verifyAuth, usersControllers.getCurrentUser);
 router.post("/forgotPassword", usersControllers.requestPasswordReset);
 router.post("/resetPassword", usersControllers.resetPassword);
 router.patch("/:id", verify.verifyAdmin, usersControllers.updateUser);
