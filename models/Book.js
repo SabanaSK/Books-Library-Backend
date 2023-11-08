@@ -67,10 +67,6 @@ class Book {
     return post[0];
   }
   static async updateById(id, title, genre, author, updateBy) {
-    title = title !== undefined ? title : null;
-    genre = genre !== undefined ? genre : null;
-    author = author !== undefined ? author : null;
-    updateBy = updateBy !== undefined ? updateBy : null;
     const currentDate = new Date();
 
     const sql = `
@@ -80,16 +76,6 @@ class Book {
   `;
     await db.execute(sql, [title, genre, author, updateBy, currentDate, id]);
   }
-
-  // static async updateById(id, title, genre, author, updateBy) {
-  //   const currentDate = new Date();
-  //   const sql = `
-  //     UPDATE postsbook SET title = ?, genre = ?, author = ?, updateBy = ?, updateAt = ?
-  //   WHERE Id = ?
-  //   `;
-  //   await db.execute(sql, [title, genre, author, updateBy, currentDate, id]);
-  // }
-
   static async deleteById(id) {
     const sql = `DELETE FROM postsbook WHERE Id = ?`;
     await db.execute(sql, [id]);
