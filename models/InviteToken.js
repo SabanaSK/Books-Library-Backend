@@ -58,14 +58,6 @@ class InviteToken {
     return tokens[0];
   }
 
-  static async deactivate(token) {
-    const sql = `
-      UPDATE inviteTokens 
-      SET status = 'inactive'
-      WHERE inviteToken = ?`;
-
-    await db.execute(sql, [token]);
-  }
   static async deleteToken(token) {
     const sql = `DELETE FROM inviteTokens WHERE inviteToken = ?`;
     await db.execute(sql, [token]);

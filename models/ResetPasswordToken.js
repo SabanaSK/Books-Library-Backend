@@ -60,6 +60,7 @@ class ResetPasswordToken {
     );
   }
 
+
   static async isValidToken(token) {
     const resetToken = await this.findByToken(token);
     if (!resetToken) return false;

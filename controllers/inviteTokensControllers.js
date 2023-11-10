@@ -10,6 +10,26 @@ const getAllInviteToken = async (req, res, next) => {
     next(error);
   }
 };
+
+const validateInviteToken = async (req, res) => {
+  const inviteToken = req.query.token;
+  try {
+    const storedToken = await InviteToken.findByToken(inviteToken);
+    if (!storedToken || new Date(storedToken.expiresAt) < new Date()) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired invite token." });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error." });
+  }
+
+  return res
+        .status(200)
+        .json({ message: "Successfully InviteToken validation." });
+}
+
 const deleteInviteTokenById = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -22,4 +42,4 @@ const deleteInviteTokenById = async (req, res, next) => {
   }
 };
 
-export default { getAllInviteToken, deleteInviteTokenById };
+export default { getAllInviteToken, validateInviteToken, deleteInviteTokenById };
