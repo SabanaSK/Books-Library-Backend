@@ -24,9 +24,7 @@ class Book {
         createdBy VARCHAR(36) NOT NULL,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
         updateBy VARCHAR(36) NULL DEFAULT NULL,
-        updateAt TIMESTAMP NULL DEFAULT NULL,
-        FOREIGN KEY (createdBy) REFERENCES users(Id),
-        FOREIGN KEY (updateBy) REFERENCES users(Id)
+        updateAt TIMESTAMP NULL DEFAULT NULL
       );
     `;
     await db.execute(createTableSQL);
@@ -66,19 +64,20 @@ class Book {
     }
     return post[0];
   }
-  static async updateById(id, title, genre, author, updateBy) {
-    const currentDate = new Date();
-
-    const sql = `
-    UPDATE postsbook
-    SET title = ?, genre = ?, author = ?, updateBy = ?, updateAt = ?
-    WHERE Id = ?
-  `;
-    await db.execute(sql, [title, genre, author, updateBy, currentDate, id]);
-  }
+  
   static async deleteById(id) {
     const sql = `DELETE FROM postsbook WHERE Id = ?`;
     await db.execute(sql, [id]);
+  }
+
+  static async updatePostsOwner(oldUserId, newUserId) {
+    const currentDate = new Date();
+    const sql = `
+        UPDATE postsbook
+        SET createdBy = ?, updateBy = ?, updateAt = ?
+        WHERE createdBy = ?
+    `;
+    await db.execute(sql, [newUserId, newUserId, currentDate, oldUserId]);
   }
 }
 

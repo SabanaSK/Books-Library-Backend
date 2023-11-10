@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Token from "../models/Token.js";
 import InviteToken from "../models/InviteToken.js";
 import ResetPasswordToken from "../models/ResetPasswordToken.js";
+import Book from "../models/Book.js";
 import { v4 as uuidv4 } from "uuid";
 import sendEmail from "../middleware/sendEmail.js";
 import * as dotenv from "dotenv";
@@ -101,7 +102,7 @@ const registerWithInvite = async (req, res) => {
         hashedPassword,
         existingUser.id
       );
-      await InviteToken.deactivate(inviteToken);
+      await InviteToken.deleteToken(inviteToken);
       return res
         .status(200)
         .json({ message: "Registration completed successfully." });
@@ -317,8 +318,15 @@ const updateUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const posts = await User.findAll();
-    res.status(200).json(posts);
+    const users = await User.findAll();
+    const responseUsers = users.map((user) => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+    }));
+    res.status(200).json(responseUsers);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server Error", error: error.message });
@@ -328,11 +336,37 @@ const getAllUsers = async (req, res) => {
 const deleteById = async (req, res) => {
   try {
     const id = req.params.id;
+    const newUserId = req.user.id;
+    await Book.updatePostsOwner(id, newUserId);
     await User.deleteById(id);
-    res.status(200).json({ message: "Post deleted successfully." });
+    res.status(200).json({ message: "User deleted successfully." });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+const getUserById = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    const responseUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+    };
+
+    res.status(200).json(responseUser);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+    next(error);
   }
 };
 
@@ -347,4 +381,5 @@ export default {
   updateUser,
   getAllUsers,
   deleteById,
+  getUserById,
 };

@@ -11,9 +11,7 @@ router.get("/currentUser", verify.verifyAuth, usersControllers.getCurrentUser);
 router.post("/forgotPassword", usersControllers.requestPasswordReset);
 router.post("/resetPassword", usersControllers.resetPassword);
 router.patch("/:id", verify.verifyAdmin, usersControllers.updateUser);
-
-//Double check at the end if it needed
 router.get("/", verify.verifyAdmin, usersControllers.getAllUsers);
 router.delete("/:id", verify.verifyAdmin, usersControllers.deleteById);
-
+router.get("/:id", verify.verifyAdmin, usersControllers.getUserById);
 export default router;

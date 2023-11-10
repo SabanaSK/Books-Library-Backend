@@ -66,9 +66,9 @@ class InviteToken {
 
     await db.execute(sql, [token]);
   }
-  static async deleteById(id) {
-    const sql = `DELETE FROM inviteTokens WHERE Id = ?`;
-    await db.execute(sql, [id]);
+  static async deleteToken(token) {
+    const sql = `DELETE FROM inviteTokens WHERE inviteToken = ?`;
+    await db.execute(sql, [token]);
   }
 }
 
