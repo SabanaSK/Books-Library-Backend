@@ -361,6 +361,9 @@ const getUserById = async (req, res, next) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      createdAt: user.createdAt,
+      updatedBy: user.updatedBy,
+      updatedAt: user.updatedAt,
       status: user.status,
       role: user.role,
     };
