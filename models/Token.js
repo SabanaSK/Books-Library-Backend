@@ -17,8 +17,7 @@ class Token {
         userId VARCHAR(36) NOT NULL,
         token VARCHAR(512) UNIQUE NOT NULL,  
         issuedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        expiresAt TIMESTAMP NOT NULL,      
-        FOREIGN KEY (userId) REFERENCES users(id)
+        expiresAt TIMESTAMP NOT NULL
       );
     `;
     await db.execute(createTokensTableSQL);
