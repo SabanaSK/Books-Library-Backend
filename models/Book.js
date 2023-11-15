@@ -74,7 +74,17 @@ class Book {
 
     return posts.length > 0 ? posts[0] : null;
   }
-  
+
+  static async updateById(id, title, genre, author, updateBy) {
+    const currentDate = new Date();
+    const sql = `
+    UPDATE postsbook
+    SET title = ?, genre = ?, author = ?, updateBy = ?, updateAt = ?
+    WHERE Id = ?
+  `;
+    await db.execute(sql, [title, genre, author, updateBy, currentDate, id]);
+  }
+
   static async deleteById(id) {
     const sql = `DELETE FROM postsbook WHERE Id = ?`;
     await db.execute(sql, [id]);
