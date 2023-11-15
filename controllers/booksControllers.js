@@ -32,6 +32,14 @@ const createNewPost = async (req, res, next) => {
   try {
     const { title, genre, author } = req.body;
     const userId = req.user.id;
+    const existingPost = await Book.findOne({ title, genre, author });
+    if (existingPost) {
+      return res
+        .status(409)
+        .json({
+          message: "Post with the same title, genre, and author already exists",
+        });
+    }
 
     let book = new Book(title, genre, author, userId);
     await book.save(userId);

@@ -38,12 +38,6 @@ class ResetPasswordToken {
     return newToken;
   }
 
-  static async findAll() {
-    const sql = `SELECT * FROM resetTokens`;
-    const [allTokens] = await db.execute(sql);
-    return allTokens;
-  }
-
   static async findByToken(token) {
     const sql = "SELECT * FROM resetTokens WHERE resetToken = ?";
     const [tokens] = await db.execute(sql, [token]);
@@ -59,7 +53,6 @@ class ResetPasswordToken {
       tokens[0].expiresAt 
     );
   }
-
 
   static async isValidToken(token) {
     const resetToken = await this.findByToken(token);

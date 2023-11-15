@@ -43,12 +43,6 @@ class InviteToken {
     return newToken;
   }
 
-  static async findAll() {
-    const sql = `SELECT * FROM inviteTokens`;
-    const [allTokens] = await db.execute(sql);
-    return allTokens;
-  }
-
   static async findByToken(inviteToken) {
     const sql = "SELECT * FROM inviteTokens WHERE inviteToken = ?";
     const [tokens] = await db.execute(sql, [inviteToken]);

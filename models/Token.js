@@ -34,11 +34,7 @@ class Token {
     this.id = newToken.insertId;
     return this;
   }
-  static async findAll() {
-    const sql = `SELECT * FROM tokens`;
-    const [allTokens] = await db.execute(sql);
-    return allTokens;
-  }
+  
   static async findIdByToken(refreshToken) {
     const sql = "SELECT id FROM tokens WHERE token = ?";
     const [tokens] = await db.execute(sql, [refreshToken]);

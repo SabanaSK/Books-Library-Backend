@@ -64,6 +64,16 @@ class Book {
     }
     return post[0];
   }
+
+  static async findOne({ title, genre, author }) {
+    const sql = `
+      SELECT * FROM postsbook 
+      WHERE title = ? AND genre = ? AND author = ?;
+    `;
+    const [posts] = await db.execute(sql, [title, genre, author]);
+
+    return posts.length > 0 ? posts[0] : null;
+  }
   
   static async deleteById(id) {
     const sql = `DELETE FROM postsbook WHERE Id = ?`;

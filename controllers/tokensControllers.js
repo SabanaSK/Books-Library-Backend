@@ -1,17 +1,6 @@
 import Token from "../models/Token.js";
 import { verifyRefreshToken } from "../middleware/jwt.js";
 
-const getAllRefreshToken = async (req, res, next) => {
-  try {
-    const token = await Token.findAll();
-    res.status(200).json(token);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Server Error", error: error.message });
-    next(error);
-  }
-};
-
 const logout = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
@@ -54,4 +43,4 @@ const logoutAllPlace = async (req, res, next) => {
   }
 };
 
-export default { getAllRefreshToken, logout, logoutAllPlace };
+export default { logout, logoutAllPlace };
