@@ -102,6 +102,7 @@ const registerWithInvite = async (req, res) => {
         hashedPassword,
         existingUser.id
       );
+      await User.updateStatus(existingUser.id, "active", existingUser.id);
       await InviteToken.deleteToken(inviteToken);
       return res
         .status(200)
