@@ -1,5 +1,9 @@
 const logger = (req, res, next) => {
-  console.log(`${req.method}  ${req.url}`, req.body);
+  const safeBody = { ...req.body };
+  if (safeBody.password) {
+    safeBody.password = "********";
+  }
+  console.log(`${req.method} ${req.url}`, safeBody);
   next();
 };
 
